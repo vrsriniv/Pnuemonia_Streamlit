@@ -18,20 +18,25 @@ from tensorflow.keras.preprocessing.image import img_to_array
 import tensorflow as tf
 from tensorflow.keras.layers import Lambda
 
-# Dummy function for custom layer (like 'Cast') handling
-def dummy_cast(x, **kwargs):
-    return tf.cast(x, tf.float32)
+# Define replacement for missing "Cast" layer
+class CustomCastLayer(tf.keras.layers.Layer):
+    def __init__(self, dtype='float32', **kwargs):
+        super().__init__(**kwargs)
+        self.dtype = dtype
 
-# Register any custom layers or functions used in your model
+    def call(self, x):
+        return tf.cast(x, self.dtype)
+
+# Register custom object
 custom_objects = {
-    "Cast": dummy_cast
+    "Cast": CustomCastLayer
 }
 
 # ✅ Define model directory and demo image path
 MODEL_DIR = "models"
 DEMO_IMAGE_PATH = os.path.join(MODEL_DIR, "predicted_image_1.png")
 
-# ✅ Load models with custom objects
+# Load models
 @st.cache_resource
 def load_models():
     return {
