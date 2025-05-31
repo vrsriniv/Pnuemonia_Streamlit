@@ -20,7 +20,8 @@ from tensorflow.keras.layers import Lambda
 from keras.models import load_model
 
 # Dummy function for custom layer (like 'Cast') handling
-def dummy_cast(x):
+def dummy_cast(x, **kwargs):
+    import tensorflow as tf
     return tf.cast(x, tf.float32)
 
 custom_objects = {
