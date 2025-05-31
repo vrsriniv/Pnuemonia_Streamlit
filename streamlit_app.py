@@ -16,16 +16,16 @@ import pydicom
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 
-# Set model directory (adjust path based on Colab mount or local usage)
-MODEL_DIR = "/content/drive/MyDrive/AI Project/DICOM_Files"
-DEMO_IMAGE_PATH = "/content/drive/MyDrive/AI Project/DICOM_Files/predicted_image_1.png"
+# Set model directory relative to current working directory
+MODEL_DIR = os.path.join(os.getcwd(), "models")
+DEMO_IMAGE_PATH = os.path.join(MODEL_DIR, "predicted_image_1.png")
 
 @st.cache_resource
 def load_models():
     return {
-        "MobileNet": load_model(f"{MODEL_DIR}/mobilenet_best.h5"),
-        "DenseNet": load_model(f"{MODEL_DIR}/densenet_best.h5"),
-        "CheXNet": load_model(f"{MODEL_DIR}/chexnet_model(1).h5")
+        "MobileNet": load_model(os.path.join(MODEL_DIR, "mobilenet_best.h5")),
+        "DenseNet": load_model(os.path.join(MODEL_DIR, "densenet_best.h5")),
+        "CheXNet": load_model(os.path.join(MODEL_DIR, "chexnet_model(1).h5"))
     }
 
 def preprocess_image_cv2(img_np):
