@@ -27,6 +27,9 @@ custom_objects = {
     "Cast": dummy_cast
 }
 
+# ✅ Define the correct relative path to your models folder
+MODEL_DIR = "models"
+
 @st.cache_resource
 def load_models():
     return {
