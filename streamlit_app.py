@@ -19,14 +19,12 @@ import tensorflow as tf
 from tensorflow.keras.layers import Lambda
 from keras.models import load_model
 
-# Dummy function to replace the Lambda logic
+# Dummy function for custom layer (like 'Cast') handling
 def dummy_cast(x):
     return tf.cast(x, tf.float32)
 
 custom_objects = {
-    "Cast": dummy_cast,
-    "swish": tf.nn.swish,
-    "relu6": tf.nn.relu6  # Add more if you had other functions
+    "Cast": dummy_cast
 }
 
 @st.cache_resource
