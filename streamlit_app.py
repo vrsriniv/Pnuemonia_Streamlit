@@ -17,20 +17,17 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 import tensorflow as tf
 from tensorflow.keras.layers import Lambda
+from keras.models import load_model
 
-# Register custom 'Cast' layer
-def Cast(x):
+# Dummy function to replace the Lambda logic
+def dummy_cast(x):
     return tf.cast(x, tf.float32)
 
 custom_objects = {
-    "Cast": Lambda(Cast),
+    "Cast": dummy_cast,
     "swish": tf.nn.swish,
-    "relu6": tf.nn.relu6
+    "relu6": tf.nn.relu6  # Add more if you had other functions
 }
-
-# Set model directory relative to current working directory
-MODEL_DIR = os.path.join(os.getcwd(), "models")
-DEMO_IMAGE_PATH = os.path.join(MODEL_DIR, "predicted_image_1.png")
 
 @st.cache_resource
 def load_models():
