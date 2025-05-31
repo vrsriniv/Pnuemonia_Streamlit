@@ -10,10 +10,6 @@ Original file is located at
 from  google import colab
 colab.drive.mount('/content/drive')
 
-!pip install pydicom
-
-!pip install streamlit
-
 import streamlit as st
 import os
 import numpy as np
