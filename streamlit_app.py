@@ -22,10 +22,10 @@ from tensorflow.keras.layers import Lambda
 class CustomCastLayer(tf.keras.layers.Layer):
     def __init__(self, dtype='float32', **kwargs):
         super().__init__(**kwargs)
-        self.dtype = dtype
+        self._target_dtype = dtype  # avoid conflict with Keras' reserved 'dtype' property
 
     def call(self, x):
-        return tf.cast(x, self.dtype)
+        return tf.cast(x, self._target_dtype)
 
 # Register custom object
 custom_objects = {
