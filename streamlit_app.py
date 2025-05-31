@@ -22,11 +22,15 @@ DEMO_IMAGE_PATH = os.path.join(MODEL_DIR, "predicted_image_1.png")
 
 @st.cache_resource
 def load_models():
-    return {
-        "MobileNet": load_model(os.path.join(MODEL_DIR, "mobilenet_best.h5")),
-        "DenseNet": load_model(os.path.join(MODEL_DIR, "densenet_best.h5")),
-        "CheXNet": load_model(os.path.join(MODEL_DIR, "chexnet_model(1).h5"))
-    }
+    try:
+        return {
+            "MobileNet": load_model(os.path.join(MODEL_DIR, "mobilenet_best.h5"), compile=False),
+            "DenseNet": load_model(os.path.join(MODEL_DIR, "densenet_best.h5"), compile=False),
+            "CheXNet": load_model(os.path.join(MODEL_DIR, "chexnet_model(1).h5"), compile=False)
+        }
+    except Exception as e:
+        st.error(f"Model loading failed: {e}")
+        return {}
 
 def preprocess_image_cv2(img_np):
     if len(img_np.shape) == 2:
