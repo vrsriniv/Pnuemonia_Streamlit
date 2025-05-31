@@ -17,20 +17,21 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 import tensorflow as tf
 from tensorflow.keras.layers import Lambda
-from keras.models import load_model
 
 # Dummy function for custom layer (like 'Cast') handling
 def dummy_cast(x, **kwargs):
-    import tensorflow as tf
     return tf.cast(x, tf.float32)
 
+# Register any custom layers or functions used in your model
 custom_objects = {
     "Cast": dummy_cast
 }
 
-# ✅ Define the correct relative path to your models folder
+# ✅ Define model directory and demo image path
 MODEL_DIR = "models"
+DEMO_IMAGE_PATH = os.path.join(MODEL_DIR, "predicted_image_1.png")
 
+# ✅ Load models with custom objects
 @st.cache_resource
 def load_models():
     return {
@@ -51,6 +52,7 @@ def load_models():
         )
     }
 
+# ✅ Preprocess image
 def preprocess_image_cv2(img_np):
     if len(img_np.shape) == 2:
         img_np = cv2.cvtColor(img_np, cv2.COLOR_GRAY2RGB)
@@ -58,12 +60,14 @@ def preprocess_image_cv2(img_np):
     img_array = img_to_array(img_resized) / 255.0
     return np.expand_dims(img_array, axis=0)
 
+# ✅ Read DICOM files
 def read_dicom(file):
     ds = pydicom.dcmread(file)
     img = ds.pixel_array
     img = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX)
     return img.astype(np.uint8)
 
+# ✅ Predict using the selected model
 def predict_class(model, img_array):
     preds = model.predict(img_array)
     class_idx = np.argmax(preds)
@@ -71,6 +75,7 @@ def predict_class(model, img_array):
     label = "Pneumonia" if class_idx == 1 else "Normal"
     return label, confidence
 
+# ✅ Streamlit UI setup
 st.set_page_config(page_title="Pneumonia Detection", layout="centered")
 st.title("🫁 Pneumonia Detection App")
 
