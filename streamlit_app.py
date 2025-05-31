@@ -16,27 +16,25 @@ import pydicom
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 import tensorflow as tf
-from tensorflow.keras.layers import Lambda
 
-# Define replacement for missing "Cast" layer
+# Custom layer definition to handle 'Cast' layer from legacy models
 class CustomCastLayer(tf.keras.layers.Layer):
     def __init__(self, dtype='float32', **kwargs):
         super().__init__(**kwargs)
-        self._target_dtype = dtype  # avoid conflict with Keras' reserved 'dtype' property
+        self._target_dtype = dtype
 
     def call(self, x):
         return tf.cast(x, self._target_dtype)
 
-# Register custom object
 custom_objects = {
     "Cast": CustomCastLayer
 }
 
-# ✅ Define model directory and demo image path
+# Model directory and path to detection sample image
 MODEL_DIR = "models"
 DEMO_IMAGE_PATH = os.path.join(MODEL_DIR, "predicted_image_1.png")
 
-# Load models
+# ✅ Load only the required models
 @st.cache_resource
 def load_models():
     return {
@@ -49,15 +47,10 @@ def load_models():
             os.path.join(MODEL_DIR, "densenet_best.h5"),
             custom_objects=custom_objects,
             compile=False
-        ),
-        "CheXNet": load_model(
-            os.path.join(MODEL_DIR, "chexnet_model(1).h5"),
-            custom_objects=custom_objects,
-            compile=False
         )
     }
 
-# ✅ Preprocess image
+# ✅ Image preprocessing for prediction
 def preprocess_image_cv2(img_np):
     if len(img_np.shape) == 2:
         img_np = cv2.cvtColor(img_np, cv2.COLOR_GRAY2RGB)
@@ -65,27 +58,33 @@ def preprocess_image_cv2(img_np):
     img_array = img_to_array(img_resized) / 255.0
     return np.expand_dims(img_array, axis=0)
 
-# ✅ Read DICOM files
+# ✅ Handle DICOM input
 def read_dicom(file):
     ds = pydicom.dcmread(file)
     img = ds.pixel_array
     img = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX)
     return img.astype(np.uint8)
 
-# ✅ Predict using the selected model
+# ✅ Robust prediction function
 def predict_class(model, img_array):
     preds = model.predict(img_array)
-    class_idx = np.argmax(preds)
-    confidence = float(np.max(preds))
-    label = "Pneumonia" if class_idx == 1 else "Normal"
+
+    if preds.shape[-1] == 1:
+        confidence = float(preds[0][0])
+        label = "Pneumonia" if confidence > 0.5 else "Normal"
+    else:
+        class_idx = np.argmax(preds)
+        confidence = float(np.max(preds))
+        label = "Pneumonia" if class_idx == 1 else "Normal"
+
     return label, confidence
 
-# ✅ Streamlit UI setup
+# ✅ Streamlit app layout
 st.set_page_config(page_title="Pneumonia Detection", layout="centered")
 st.title("🫁 Pneumonia Detection App")
 
 uploaded_file = st.file_uploader("Upload a Chest X-ray (JPG, PNG, or DICOM)", type=["png", "jpg", "jpeg", "dcm"])
-model_choice = st.selectbox("Select Classification Model", ["MobileNet", "DenseNet", "CheXNet"])
+model_choice = st.selectbox("Select Classification Model", ["MobileNet", "DenseNet"])
 
 if uploaded_file:
     file_ext = uploaded_file.name.split('.')[-1].lower()
@@ -96,7 +95,7 @@ if uploaded_file:
         display_image = Image.open(uploaded_file).convert("RGB")
         image_np = np.array(display_image)
 
-    st.image(display_image, caption="Uploaded Image", use_column_width=True)
+    st.image(display_image, caption="Uploaded Image", use_container_width=True)
 
     st.subheader("🔍 Classification Result")
     img_array = preprocess_image_cv2(image_np)
@@ -106,6 +105,6 @@ if uploaded_file:
 
     st.subheader("📍 Sample Object Detection Output")
     if os.path.exists(DEMO_IMAGE_PATH):
-        st.image(DEMO_IMAGE_PATH, caption="Detected Pneumonia Area (Sample)", use_column_width=True)
+        st.image(DEMO_IMAGE_PATH, caption="Detected Pneumonia Area (Sample)", use_container_width=True)
     else:
         st.warning("Detection preview image not found.")
